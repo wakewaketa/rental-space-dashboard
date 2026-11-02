@@ -1,0 +1,30 @@
+{
+  "business_name": "〇〇レンタルスペース",
+  "start_date": "2026-01-01",
+  "sites": [
+    {
+      "name": "渋谷スタジオ",
+      "calendars": { "全体": "xxxxxxxx@group.calendar.google.com" },
+      "fixed_cost": 180000,
+      "fixed_label": "家賃15万＋光熱通信2万＋清掃1万",
+      "fixed_since": "2026-01",
+      "sm_hourly": { "weekday": 1100, "weekend": 1400 }
+    },
+    {
+      "name": "新宿",
+      "calendars": {
+        "A": "aaaaaaaa@group.calendar.google.com",
+        "B": "bbbbbbbb@group.calendar.google.com"
+      },
+      "fixed_cost": 300000,
+      "room_split": { "A": 0.6, "B": 0.4 },
+      "direct": true,
+      "direct_rate": 1000,
+      "start_date": "2026-04-01"
+    }
+  ],
+  "fees": { "インスタベース": 0.35, "スペースマーケット": 0.30 },
+  "channel_rules": [],
+  "exclude_keywords": ["キャンセル", "清掃", "掃除", "片付け", "営業停止", "ブロック", "設営", "メンテ", "予約リクエスト", "貸出不可", "予約不可", "見学", "内見", "自社", "テスト"],
+  "direct_channels": ["よやクル", "直販"]
+}

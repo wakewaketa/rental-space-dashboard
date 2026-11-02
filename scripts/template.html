@@ -1,0 +1,842 @@
+<meta charset="utf-8">
+<title>{{TITLE}}</title>
+<style>
+  :root{
+    color-scheme:light;
+    --plane:#f7f7f4; --surface:#fcfcfb; --surface-2:#f2f1ec;
+    --ink:#14140f; --ink-2:#54524b; --muted:#8b897f;
+    --grid:#e6e4dc; --baseline:#cdccc2; --border:rgba(20,20,15,.10);
+    --am:#2a78d6; --pm:#eb6834; --nt:#1baf7a;
+    --seq:#2a78d6; --accent:#1a6ea8; --rev:#1baf7a; --yo:#eda100; --be:#d1495b;
+    --shadow:0 1px 2px rgba(20,20,15,.05),0 6px 20px rgba(20,20,15,.05);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--plane);color:var(--ink);
+    font-family:system-ui,-apple-system,"Segoe UI",sans-serif;
+    -webkit-font-smoothing:antialiased;line-height:1.5}
+  .wrap{max-width:1120px;margin:0 auto;padding:32px 20px 64px}
+  header{margin-bottom:20px}
+  .eyebrow{font-size:12px;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--accent);font-weight:700;margin:0 0 6px}
+  h1{font-size:clamp(23px,4vw,33px);margin:0;font-weight:750;letter-spacing:-.02em;text-wrap:balance}
+  .sub{color:var(--ink-2);margin:8px 0 0;font-size:15px}
+  .stamp{font-size:11px;color:var(--muted);margin:6px 0 0}
+  .sel{display:flex;gap:8px;flex-wrap:wrap;margin:22px 0 4px}
+  .sel button{font:inherit;font-size:13px;font-weight:650;color:var(--ink-2);
+    background:var(--surface);border:1px solid var(--border);border-radius:999px;
+    padding:7px 16px;cursor:pointer;transition:all .12s;box-shadow:var(--shadow)}
+  .sel button:hover{color:var(--ink);border-color:var(--accent)}
+  .sel button[aria-pressed="true"]{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .sel button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  .kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin:16px 0 26px}
+  @media(max-width:900px){.kpis{grid-template-columns:repeat(3,1fr)}}
+  @media(max-width:560px){.kpis{grid-template-columns:repeat(2,1fr)}}
+  .kpi.accent{border-color:color-mix(in srgb,var(--accent) 45%,var(--border));
+    background:color-mix(in srgb,var(--accent) 5%,var(--surface))}
+  .kpi{background:var(--surface);border:1px solid var(--border);border-radius:14px;
+    padding:16px 18px;box-shadow:var(--shadow)}
+  .kpi .lbl{font-size:12px;color:var(--muted);font-weight:600;letter-spacing:.02em}
+  .kpi .val{font-size:27px;font-weight:760;letter-spacing:-.02em;margin-top:4px;
+    font-variant-numeric:tabular-nums}
+  .kpi .val small{font-size:14px;font-weight:600;color:var(--ink-2)}
+  .kpi .note{font-size:12px;color:var(--ink-2);margin-top:3px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  @media(max-width:820px){.grid{grid-template-columns:1fr}}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:16px;
+    padding:20px 20px 16px;box-shadow:var(--shadow);min-width:0}
+  .card.wide{grid-column:1 / -1}
+  .card h2{font-size:15px;margin:0;font-weight:700;letter-spacing:-.01em}
+  .card h2 .scope{font-size:12px;font-weight:650;color:var(--accent);margin-left:8px}
+  .card .cap{font-size:12.5px;color:var(--ink-2);margin:3px 0 16px}
+  .legend{display:flex;flex-wrap:wrap;gap:14px;margin:2px 0 14px;font-size:12.5px;color:var(--ink-2)}
+  .legend span{display:inline-flex;align-items:center;gap:6px}
+  .dot{width:11px;height:11px;border-radius:3px;display:inline-block}
+  svg{display:block;width:100%;height:auto;overflow:visible}
+  .axis{fill:var(--muted);font-size:12px;font-variant-numeric:tabular-nums}
+  .axis.b{font-weight:650;fill:var(--ink-2);font-size:12.5px}
+  .val-lbl{fill:var(--ink);font-size:12px;font-weight:650;font-variant-numeric:tabular-nums}
+  .val-lbl.sm{font-size:11px}
+  .gl{stroke:var(--grid);stroke-width:1}
+  .baseline{stroke:var(--baseline);stroke-width:1.5}
+  .beline{stroke:var(--be);stroke-width:1.6;stroke-dasharray:7 4}
+  .be-lbl{fill:var(--be);font-size:11.5px;font-weight:750;font-variant-numeric:tabular-nums;
+    paint-order:stroke;stroke:var(--surface);stroke-width:3px;stroke-linejoin:round}
+  .card h2 .scope.be{color:var(--be)}
+  .card h2 .scope.be.ok{color:var(--rev)}
+  .row-lbl{fill:var(--ink-2);font-size:12.5px}
+  .foot{margin-top:26px;font-size:12px;color:var(--muted);line-height:1.7;
+    border-top:1px solid var(--border);padding-top:16px}
+  .foot b{color:var(--ink-2);font-weight:650}
+  .tag{display:inline-block;font-size:11px;font-weight:650;color:var(--accent);
+    background:color-mix(in srgb,var(--accent) 12%,transparent);
+    padding:2px 8px;border-radius:20px;margin-left:8px;vertical-align:middle}
+  .mz{border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:10px;
+    background:color-mix(in srgb,var(--accent) 4%,var(--surface))}
+  .mz:last-child{margin-bottom:0}
+  .mz-h{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap}
+  .mz-name{font-size:14px;font-weight:700;color:var(--ink)}
+  .mz-status{font-size:11px;font-weight:700;color:#fff;background:var(--accent);
+    padding:2px 10px;border-radius:20px;white-space:nowrap}
+  .mz-status.done{background:var(--muted)}
+  .mz-body{font-size:12.5px;color:var(--ink-2);line-height:1.7}
+  .mz-k{display:inline-block;min-width:64px;color:var(--muted);font-weight:650;font-size:11.5px}
+  .mz-note{color:var(--muted);font-size:11.5px}
+  .mz-empty{font-size:13px;color:var(--muted);padding:8px 0}
+  .section-h{grid-column:1 / -1;display:flex;align-items:center;gap:12px;
+    font-size:12px;font-weight:750;letter-spacing:.1em;color:var(--accent);margin:14px 0 -2px}
+  .section-h::after{content:"";flex:1;height:1px;background:var(--border)}
+  .section-h:first-child{margin-top:0}
+  .pcmp{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+  @media(max-width:820px){.pcmp{grid-template-columns:1fr}}
+  .pcmp h3{font-size:12.5px;font-weight:700;color:var(--ink);margin:0 0 8px}
+  .ptab-wrap{overflow-x:auto}
+  .ptab{width:100%;border-collapse:collapse;font-size:12.5px;font-variant-numeric:tabular-nums}
+  .ptab th,.ptab td{padding:7px 9px;text-align:right;border-bottom:1px solid var(--border);white-space:nowrap}
+  .ptab th:first-child,.ptab td:first-child{text-align:left;font-weight:650;color:var(--ink-2);white-space:normal}
+  .ptab thead th{color:var(--muted);font-weight:700;font-size:11px;border-bottom:1.5px solid var(--baseline)}
+  .ptab tbody tr:last-child td{border-bottom:none}
+  .ptab td.lo{color:var(--accent);font-weight:760}
+  .ptab td.na{color:var(--muted)}
+  .pnote{font-size:11.5px;color:var(--muted);margin:8px 0 0;line-height:1.65}
+  .pkey{background:color-mix(in srgb,var(--accent) 4%,var(--surface));border:1px solid var(--border);
+    border-radius:12px;padding:12px 14px;margin-top:16px;font-size:12.5px;color:var(--ink-2);line-height:1.7}
+  .pkey b{color:var(--accent);font-weight:750}
+  .ins{margin:18px 0 4px}
+  .ins ul{list-style:none;margin:0;padding:0;display:grid;gap:12px}
+  .ins li{display:grid;grid-template-columns:10px 1fr;gap:10px;align-items:start}
+  .ins .ins-dot{width:10px;height:10px;border-radius:50%;margin-top:5px;background:var(--accent)}
+  .ins li.good .ins-dot{background:var(--rev)}
+  .ins li.bad .ins-dot{background:var(--be)}
+  .ins li.warn .ins-dot{background:var(--yo)}
+  .ins .ins-h{font-size:14px;font-weight:700;color:var(--ink);line-height:1.5}
+  .ins .ins-b{font-size:13.5px;color:var(--ink-2);line-height:1.7;margin-top:1px;font-variant-numeric:tabular-nums}
+  .ins .ins-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:7px}
+  .ins .ins-chip{font-size:12.5px;color:var(--ink-2);background:var(--surface-2);border-radius:8px;padding:4px 10px;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .ins .ins-chip b{font-weight:700;color:var(--ink);margin-left:8px}
+  .ins .ins-chip b.pos{color:#12855c}
+  .ins .ins-chip b.neg{color:var(--be)}
+  .pltab{width:100%;border-collapse:separate;border-spacing:0;font-size:12.5px;font-variant-numeric:tabular-nums}
+  .pltab th,.pltab td{padding:6px 9px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--border)}
+  .pltab thead th{color:var(--muted);font-weight:700;font-size:11px;border-bottom:1.5px solid var(--baseline);background:var(--surface)}
+  .pltab .st{position:sticky;left:0;z-index:1;background:var(--surface);text-align:left;font-weight:700;color:var(--ink);border-right:1px solid var(--border)}
+  .pltab .mt{text-align:left;color:var(--muted);font-size:11.5px;font-weight:650}
+  .pltab tr.g-last td,.pltab tr.g-last th{border-bottom:1.5px solid var(--baseline)}
+  .pltab tr.tot td,.pltab tr.tot th{background:color-mix(in srgb,var(--accent) 5%,var(--surface))}
+  .pltab td.pos{color:#12855c;font-weight:700}
+  .pltab td.neg{color:var(--be);font-weight:700}
+  .pltab td.na{color:var(--muted)}
+  .pltab th.cur{color:var(--yo)}
+  .pltab td.fc{font-style:italic}
+</style>
+
+<div class="wrap">
+  <header>
+    <p class="eyebrow">{{EYEBROW}}</p>
+    <h1>予約・売上ダッシュボード<span class="tag" id="tag"></span></h1>
+    <p class="sub">{{SUB}}</p>
+    <p class="stamp" id="stamp"></p>
+  </header>
+
+  <div class="card wide" id="pl-card" style="margin-bottom:6px">
+    <h2>拠点別 月次の売上・利益・利益率<span class="scope">右が最新月</span></h2>
+    <p class="cap">売上＝税込グロス（予約ベース）、<b>利益＝推定手取り − 月次固定費</b>（下のグラフの赤い破線と同じ固定費）、利益率＝利益÷売上。単位は万円。<span id="pl-cur"></span></p>
+    <div class="ptab-wrap"><table class="pltab" id="pl-tab"></table></div>
+  </div>
+
+  <div class="sel" id="studiosel" role="group" aria-label="拠点切替"></div>
+  <div class="card ins" id="ins-card">
+    <h2>今日の読み取り<span class="scope" id="ins-scope"></span></h2>
+    <p class="cap">数字から自動で書いています。毎日の更新で内容が変わります（月の切り替えには連動しません）。</p>
+    <ul id="ins-list"></ul>
+  </div>
+  <div class="sel" id="sel" role="group" aria-label="対象月の切り替え"></div>
+  <div class="kpis" id="kpis"></div>
+
+  <div class="grid">
+    <div class="section-h">収益</div>
+
+    <div class="card wide">
+      <h2>月次売上・手取り 推移<span class="scope be" id="trend-be"></span></h2>
+      <p class="cap">月別の税込グロス売上（金額判明分）・推定手取り・予約件数。※直近月は月途中の場合あり。<b>赤の破線＝損益分岐点（月次固定費）</b>。濃色の「手取り」バーが破線を超えていれば黒字。</p>
+      <div class="legend">
+        <span><i class="dot" style="background:var(--rev)"></i>推定手取り</span>
+        <span><i class="dot" style="background:color-mix(in srgb,var(--rev) 30%,var(--surface-2))"></i>手数料</span>
+        <span><i class="dot" style="background:var(--be)"></i>損益分岐点（月次固定費）</span>
+      </div>
+      <svg id="c-trend" viewBox="0 0 720 240" role="img" aria-label="月次売上・手取りの棒グラフ"></svg>
+    </div>
+
+    <div class="card wide">
+      <h2>同日比較（各月 1〜<span id="mtd-cut"></span>日）<span class="scope" id="mtd-mom"></span><span class="scope be" id="mtd-be"></span></h2>
+      <p class="cap">各月を今日と同じ日付までで揃えて比較。淡色＝売上、濃色＝推定手取り。<b>赤の破線＝損益分岐ペース</b>（月次固定費を同じ日数分に日割りしたもの）。</p>
+      <svg id="c-mtd" viewBox="0 0 720 220" role="img" aria-label="各月同日までの売上・手取り比較"></svg>
+    </div>
+
+    <div class="card wide">
+      <h2>先の予約（見込み）<span class="scope" id="fut-sum"></span></h2>
+      <p class="cap">今日以降の確定予約の売上・手取り見込み。淡色＝売上、濃色＝手取り。<span id="fut-horizon"></span></p>
+      <svg id="c-future" viewBox="0 0 720 220" role="img" aria-label="先の予約の月別売上見込み"></svg>
+    </div>
+
+    <div class="card wide">
+      <h2>プラットフォーム別 売上／手取り<span class="scope" id="sc-plat"></span></h2>
+      <p class="cap">濃い部分＝推定手取り、薄い部分＝手数料（金額判明分）。手取り率が高いチャネルほど利益効率が良い。</p>
+      <svg id="c-plat" viewBox="0 0 720 210" role="img" aria-label="プラットフォーム別 売上と手取り"></svg>
+    </div>
+
+    <div class="section-h">予約の傾向</div>
+
+    <div class="card wide">
+      <h2>曜日 × 時間帯<span class="scope" id="sc-dow"></span></h2>
+      <p class="cap">曜日ごとの予約件数を時間帯で積み上げ。ピークと空白地帯が見える。</p>
+      <div class="legend">
+        <span><i class="dot" style="background:var(--am)"></i>午前（〜12時）</span>
+        <span><i class="dot" style="background:var(--pm)"></i>午後（12〜17時）</span>
+        <span><i class="dot" style="background:var(--nt)"></i>夜間（17時〜）</span>
+      </div>
+      <svg id="c-dow" viewBox="0 0 720 300" role="img" aria-label="曜日別・時間帯別 予約件数"></svg>
+    </div>
+
+    <div class="card wide">
+      <h2>利用用途<span class="scope" id="sc-use"></span></h2>
+      <p class="cap">用途別の予約件数。</p>
+      <svg id="c-use" viewBox="0 0 720 250" role="img" aria-label="利用用途別 予約件数"></svg>
+    </div>
+
+    <div class="card wide">
+      <h2>人数帯<span class="scope" id="sc-ppl"></span></h2>
+      <p class="cap">人数帯別の予約件数。</p>
+      <svg id="c-ppl" viewBox="0 0 720 170" role="img" aria-label="人数帯別 予約件数"></svg>
+    </div>
+
+    <div class="card wide">
+      <h2>時間帯別 平均利用時間<span class="scope" id="sc-dur"></span></h2>
+      <p class="cap">時間帯ごとの平均利用時間と件数。</p>
+      <svg id="c-dur" viewBox="0 0 720 190" role="img" aria-label="時間帯別 平均利用時間"></svg>
+    </div>
+
+    <div class="section-h" id="rep-h">顧客（新規／リピート）</div>
+
+    <div class="card wide" id="rep-card">
+      <h2>新規／リピートと稼働率<span class="scope" id="rep-scope"></span></h2>
+      <p class="cap">予約者名で名寄せ。<b>新規＝その人の最初の予約</b>（A/B問わず）、2回目以降はリピート。稼働率＝予約時間÷（24時間×日数）、括弧内は8〜23時基準。AB貸切は両室に計上。月の切り替えには連動しません。</p>
+      <div class="ptab-wrap"><table class="ptab" id="rep-months"></table></div>
+
+      <div class="pcmp" style="margin-top:22px">
+        <div>
+          <h3>リピートはどこから来た客か<span class="mz-note" id="rep-win1"></span></h3>
+          <div class="ptab-wrap"><table class="ptab" id="rep-src"></table></div>
+          <p class="pnote">行＝その客が最初に予約したPF、列＝今回のリピート予約のPF。</p>
+        </div>
+        <div>
+          <h3>最初のPF別 再来率<span class="mz-note" id="rep-win2"></span></h3>
+          <div class="ptab-wrap"><table class="ptab" id="rep-ret"></table></div>
+          <p class="pnote">その期間に初めて来た客のうち、2回以上来た割合。直近2か月の新規は再来の猶予が足りないので除外。</p>
+        </div>
+      </div>
+
+      <h3 style="font-size:12.5px;font-weight:700;margin:22px 0 8px">単価・利用時間<span class="mz-note" id="rep-win3"></span></h3>
+      <div class="ptab-wrap"><table class="ptab" id="rep-price"></table></div>
+      <p class="pnote" id="rep-note"></p>
+    </div>
+
+  </div>
+
+  <div class="foot">
+    <b>データ注記</b>　売上＝税込グロス、推定手取り＝手数料控除後（{{FEE_NOTE}}）。キャンセル・清掃・ブロック等の予定は除外。{{ROOM_NOTE}}<span id="foot-note"></span> 金額はカレンダーの説明欄と予約メールから取得した推定で、確定額は各社の月次明細が正。<br>
+    <b>損益分岐点</b>　月次固定費（家賃・水道光熱・通信・清掃・消耗品・保険・ツール＝経費合計から支払手数料を除いた額）。支払手数料は「推定手取り」の側で既に控除済みのため、<b>手取り ≧ 固定費</b> が黒字ライン。<span id="be-note"></span><br>
+    出典：Googleカレンダー×Gmail予約メール（<span id="foot-range"></span>）
+  </div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const NS="http://www.w3.org/2000/svg";
+function el(n,a){const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);return e;}
+function txt(p,x,y,s,c,size,anchor,weight){const t=el("text",{x,y,class:c||""});if(anchor)t.setAttribute("text-anchor",anchor);if(size)t.setAttribute("font-size",size);if(weight)t.setAttribute("font-weight",weight);t.textContent=s;p.appendChild(t);return t;}
+function clr(s){while(s.firstChild)s.removeChild(s.firstChild);}
+function yen(v){return "¥"+(v||0).toLocaleString("en-US");}
+function cyen(v,n){return (n>7&&Math.abs(v)>=10000)?((Math.round(v/1000)/10).toFixed(1)+"万"):yen(v);}
+function beY(BE,i,mT,ih,max){return (BE&&BE[i]&&BE[i]<=max)?(mT+ih-ih*BE[i]/max):null;}
+function lblTop(y,by){return (by!==null&&by>y-15&&by<y+5)?by-7:y;}            // 棒の上の数字：破線にかかるなら線の上へ
+function lblIn(y,by){return (by!==null&&by>y-14&&by<y+6)?Math.max(y,by+15):y;} // 棒の中の数字：破線にかかるなら線の下へ
+function mlabel(ym){return String(ym||"").replace(/^\d{4}\//,"");}
+function niceMax(peak,base){const st=base;return Math.max(st,Math.ceil(peak/st)*st);}
+
+/* ---------- 損益分岐点（月次固定費）ライン ---------- */
+// META.be = {monthly:最新月の固定費, byMonth:[[ym,固定費],...], label, provisional, note}
+// byMonth は拠点の開業月に合わせて段階的に増える（全社合計で顕著）。無ければ monthly で一定。
+// 支払手数料は net 側で控除済みなので「手取り ≧ 固定費」が黒字。
+function beSuffix(be){
+  const p=[]; if(be&&be.note)p.push(be.note); if(be&&be.provisional)p.push("暫定");
+  return p.length?"（"+p.join("・")+"）":"";
+}
+function beDays(ym){                          // "2026/8月" → その月の日数
+  const m=/^(\d{4})\/(\d{1,2})月$/.exec(ym||"");
+  return m?new Date(+m[1],+m[2],0).getDate():30;
+}
+function beVals(rows,prorate){                // 各バーに対応する分岐点の配列（0＝線を引かない）
+  const be=META.be; if(!be) return null;
+  const bm=be.byMonth?Object.fromEntries(be.byMonth):null;
+  const cut=META.cutoff||31;
+  const v=rows.map(r=>{
+    const base=bm?(bm[r[0]]||0):(be.monthly||0);
+    if(!base) return 0;
+    return prorate?Math.round(base*Math.min(cut,beDays(r[0]))/beDays(r[0])):base;
+  });
+  return v.some(x=>x>0)?v:null;
+}
+function beStepped(){                        // 固定費そのものが月で変わるか（日割りの差は無視）
+  const bm=META.be&&META.be.byMonth?META.be.byMonth.filter(r=>r[1]>0):null;
+  return !!(bm&&bm.some(r=>r[1]!==bm[0][1]));
+}
+function drawBE(s,vals,mL,mT,ih,max,step,prefix,be){
+  if(!vals) return;
+  let d="",prev=null,firstI=-1;
+  for(let i=0;i<vals.length;i++){
+    const v=vals[i];
+    if(!v||v>max){prev=null;continue;}
+    if(firstI<0)firstI=i;
+    const y=mT+ih-ih*v/max, x0=mL+step*i, x1=mL+step*(i+1);
+    d+=(prev===null?`M${x0},${y}`:(prev===y?"":`L${x0},${y}`))+`L${x1},${y}`;
+    prev=y;
+  }
+  if(!d) return;
+  const p=el("path",{d,fill:"none",class:"beline"});p.setAttribute("stroke-linejoin","round");
+  s.appendChild(p);
+  // 段差があるときは値を書かない（最新月の値は見出しとフッタ注記に出る）
+  // 月数が多い／段差があるときは線の名前を書かない（棒の数字と重なるため。値は見出しと凡例に出る）
+  if(vals.length>7||beStepped()) return;
+  const nz=vals.filter(v=>v>0);
+  const y0=mT+ih-ih*vals[firstI]/max;
+  txt(s,mL+step*firstI+5,y0-7,
+      beStepped()?prefix:(prefix+" "+yen(nz[0])+beSuffix(be)),
+      "be-lbl",null,"start");
+}
+function beCurMonth(){                        // TREND/MTD の直近行が「月途中」か
+  const t=((META.rangeLabel||"").split("〜")[1]||"").split("/");
+  return t.length>=2?(t[0]+"/"+parseInt(t[1],10)+"月"):"";
+}
+function beHeadline(id,rows,netIdx,vals,kind){
+  const elh=$(id); if(!elh) return;
+  const val=vals?vals[vals.length-1]:0;
+  if(!val||!rows||!rows.length){elh.textContent="";return;}
+  const last=rows[rows.length-1], net=last[netIdx]||0, diff=net-val;
+  const partial=(last[0]===beCurMonth());
+  elh.className="scope be"+(diff>=0?" ok":"");
+  elh.textContent=mlabel(last[0])+kind+" 手取り"+insY(net)+" ／ 損益分岐点"+insY(val)+" "
+    +(diff>=0?"+":"−")+insY(Math.abs(diff))
+    +(diff>=0?"（黒字）":"（未達）")+(partial&&!kind?"　※月途中":"");
+}
+
+//__DATA_START__  (このブロックのみ毎日書き換える)
+
+//__DATA_END__
+
+let CUR=Object.keys(STUDIODATA)[0],MONTHS,TREND,SCOPES,META,MTD,FUTURE;
+function setStudio(s){const d=STUDIODATA[s]||STUDIODATA[Object.keys(STUDIODATA)[0]];CUR=s;MONTHS=d.MONTHS;TREND=d.TREND;SCOPES=d.SCOPES;META=d.META;MTD=d.MTD;FUTURE=d.FUTURE;}
+setStudio(Object.keys(STUDIODATA)[0]);
+const COL=["var(--am)","var(--pm)","var(--nt)"];
+const PLATCOL={"インスタベース":"var(--am)","よやクル":"var(--nt)","直販":"var(--nt)","スペースマーケット":"var(--pm)","Yoyappin":"var(--yo)","アップナウ":"#8a63d2"};
+const DIRECTCH={{DIRECT_JSON}};
+const SITETABS={{SITES_JSON}};   // 全社合計の内訳に使う拠点タブ（部屋タブは含めない）
+
+/* ---------- 読み取り（数字から自動生成） ---------- */
+// 入力は STUDIODATA だけ。拠点 d={TREND,MTD,SCOPES,META,FUTURE} から文章を組み立てる。
+function insKey(lbl){const m=/^(\d{4})\/(\d{1,2})月$/.exec(lbl||"");return m?m[1]+"-"+("0"+m[2]).slice(-2):"";}
+function insCur(d){const t=((d.META.rangeLabel||"").split("〜")[1]||"").split("/");return t.length>=2?(t[0]+"/"+parseInt(t[1],10)+"月"):"";}
+function insBE(d,lbl){const b=d.META.be;if(!b)return 0;const bm=b.byMonth?Object.fromEntries(b.byMonth):null;return bm?(bm[lbl]||0):(b.monthly||0);}
+function insFull(d){const c=insCur(d);return d.TREND.filter(r=>r[0]!==c);}
+function insY(v){return Math.abs(v)>=10000?((Math.round(Math.abs(v)/1000)/10).toFixed(1)+"万円"):yen(Math.abs(v));}
+function insMan(v){return "約"+(Math.round(v/1000)/10).toFixed(1)+"万円";}
+function insSgn(v){return (v>=0?"+":"−")+insY(Math.abs(v));}
+function insPct(p){return (p>0?"+":p<0?"−":"±")+Math.abs(p)+"%";}
+function insWeak(d){                          // 直近3か月（完結月）の曜日×時間帯
+  const DOW=["月","火","水","木","金","土","日"], SL=["午前","午後","夜間"];
+  const st=DOW.map(()=>[0,0,0]); let used=0;
+  insFull(d).slice(-3).forEach(r=>{const sc=d.SCOPES[insKey(r[0])];if(!sc||!sc.stack)return;used++;
+    sc.stack.forEach((row,i)=>row.forEach((v,j)=>st[i][j]+=v));});
+  if(!used) return null;
+  const day=st.map(r=>r[0]+r[1]+r[2]), slot=[0,1,2].map(j=>st.reduce((s,r)=>s+r[j],0));
+  const mi=day.indexOf(Math.min(...day)), ma=day.indexOf(Math.max(...day)), sm=slot.indexOf(Math.min(...slot));
+  return {used,minDay:DOW[mi],minN:day[mi],maxDay:DOW[ma],maxN:day[ma],minSlot:SL[sm],minSlotN:slot[sm]};
+}
+function computeInsights(key){
+  const d=STUDIODATA[key], out=[], keys=Object.keys(STUDIODATA);
+  const isAll=(SITETABS.length>1&&key===keys[0]);
+  const cur=insCur(d), full=insFull(d), mt=d.MTD||[];
+  const last=full.length?full[full.length-1]:null;
+
+  // 1. 今月の着地ペース
+  const now=(mt.length&&mt[mt.length-1][0]===cur)?mt[mt.length-1]:null;
+  if(now){
+    const cut=d.META.cutoff||0, be=insBE(d,cur), days=beDays(cur), m=mlabel(cur);
+    const prev=mt.length>=2?mt[mt.length-2]:null;
+    const tails=[];
+    full.slice(-2).forEach(r=>{const x=mt.find(y=>y[0]===r[0]);if(x)tails.push(r[5]-x[3]);});
+    const fm=((d.FUTURE&&d.FUTURE.byMonth)||[]).find(r=>r[0]===cur);
+    let body=cut+"日時点の手取りは"+insY(now[3]);
+    if(prev&&prev[3]){body+="（前月同日比"+insPct(Math.round((now[3]/prev[3]-1)*100))+"）";}
+    body+="。";
+    let head=m+"は"+cut+"日時点で手取り"+insY(now[3]), tone="info";
+    if(tails.length&&cut<days){
+      const lo=now[3]+Math.min(...tails), hi=now[3]+Math.max(...tails);
+      body+="直近"+tails.length+"か月と同じ伸び方なら、月末の手取りは"
+        +(tails.length>1&&lo!==hi?(insMan(lo)+"〜"+insMan(hi).replace("約","")):insMan(lo))+"。";
+      if(be){
+        if(lo>=be){head=m+"は黒字ペース";tone="good";body+="損益分岐点"+insY(be)+"を上回る見込みです。";}
+        else if(hi<be){head=m+"は損益分岐点に届かないペース";tone="bad";body+="損益分岐点"+insY(be)+"まで"+insMan(be-hi)+"足りません。";}
+        else{head=m+"は損益分岐点ぎりぎりのペース";tone="warn";body+="損益分岐点"+insY(be)+"をまたぐ水準です。";}
+      }
+    }
+    if(fm)body+="確定済みの今月残りの予約は"+fm[2]+"件・手取り"+insY(fm[3])+"。";
+    out.push({tone,head,body});
+  }
+
+  // 2. 直近の完結月の損益
+  if(last){
+    const be=insBE(d,last[0]), m=mlabel(last[0]);
+    if(be){
+      const diff=last[5]-be, l3=full.slice(-3).filter(r=>insBE(d,r[0])>0);
+      const win=l3.filter(r=>r[5]>=insBE(d,r[0])).length;
+      out.push({tone:diff>=0?"good":"bad",
+        head:m+"は"+(diff>=0?"黒字":"赤字")+"（"+insSgn(diff)+"）",
+        body:"手取り"+insY(last[5])+"に対して損益分岐点は"+insY(be)+"。直近"+l3.length+"か月は黒字"+win+"・赤字"+(l3.length-win)+"。"});
+    }
+  }
+
+  // 3. 拠点別の貢献（全社のみ）
+  if(isAll&&last){
+    const rows=[];
+    SITETABS.filter(k=>STUDIODATA[k]).forEach(k=>{const sd=STUDIODATA[k], r=sd.TREND.find(x=>x[0]===last[0]), be=insBE(sd,last[0]);
+      if(r&&be)rows.push([k,r[5]-be]);});
+    if(rows.length>=2){
+      rows.sort((a,b)=>b[1]-a[1]);
+      const best=rows[0], worst=rows[rows.length-1], m=mlabel(last[0]);
+      const allBe=insBE(d,last[0]);
+      let body=m+"の手取りと損益分岐点の差です。";
+      if(worst[1]<0&&allBe)body+=worst[0]+"を除くと全社は"+insSgn(last[5]-allBe-worst[1])+"。";
+      const chips=rows.map(r=>[r[0],insSgn(r[1]),r[1]>=0?"pos":"neg"]);
+      out.push({tone:worst[1]<0?"warn":"good",
+        head:worst[1]<0?("稼ぎ頭は"+best[0]+"、赤字が最も大きいのは"+worst[0]):("全拠点が黒字、稼ぎ頭は"+best[0]),
+        body,chips});
+    }
+  }
+
+  // 4. チャネルと手数料
+  const lsc=last?d.SCOPES[insKey(last[0])]:null;
+  let topName="";
+  if(lsc&&lsc.revenue>0){
+    const pl=(lsc.plat||[]).filter(p=>p[2]>0).slice().sort((a,b)=>b[2]-a[2]);
+    if(pl.length){
+      const top=pl[0], share=Math.round(top[2]/lsc.revenue*100), rate=Math.round(top[3]/top[2]*100);
+      // 直販＝config の direct_channels（手数料がほぼ無い自社予約）
+      const DIRECT=DIRECTCH, dl=pl.filter(p=>DIRECT.includes(p[0]));
+      const fee=lsc.revenue-lsc.net, m=mlabel(last[0]);
+      const yo=dl.length?["直販",0,dl.reduce((s,p)=>s+p[2],0),dl.reduce((s,p)=>s+p[3],0)]:null;
+      const yoName=dl.map(p=>p[0]).join("＋");
+      topName=top[0];
+      const direct=DIRECT.includes(top[0]);
+      let body=top[0]+"の手取り率は"+rate+"%。"+m+"の手数料は合計"+insY(fee)+"（売上の"+Math.round(fee/lsc.revenue*100)+"%）。";
+      if(!direct)body+=yo?("直販（"+yoName+"）は売上の"+Math.round(yo[2]/lsc.revenue*100)+"%で、手取り率"+Math.round(yo[3]/yo[2]*100)+"%。"):"直販の売上はありません。";
+      out.push({tone:direct?"good":(share>=60?"warn":"info"),
+        head:m+"は売上の"+share+"%が"+(direct?("直販（"+top[0]+"）"):top[0]+"経由"),body});
+    }
+  }
+
+  // 5. 時間単価
+  const hr=[];
+  full.slice(-3).forEach(r=>{const sc=d.SCOPES[insKey(r[0])];if(!sc||!(sc.hoursKnown>0))return;
+    hr.push([mlabel(r[0]),Math.round(sc.revenue/sc.hoursKnown)]);});
+  if(hr.length>=2){
+    const a=hr[hr.length-1], b=hr[hr.length-2], p=Math.round((a[1]/b[1]-1)*100);
+    const up=hr.every((x,i)=>i===0||x[1]>hr[i-1][1]), dn=hr.every((x,i)=>i===0||x[1]<hr[i-1][1]);
+    out.push({tone:p>=3?"good":(p<=-5?"warn":"info"),
+      head:a[0]+"の時間単価は¥"+a[1].toLocaleString("en-US")+"/h（前月比"+insPct(p)+"）",
+      chips:hr.map(x=>[x[0],"¥"+x[1].toLocaleString("en-US")+"/h",""]),
+      body:(hr.length>=3&&up?"3か月連続で上がっています。":hr.length>=3&&dn?"3か月連続で下がっています。":"")
+        +"売上÷利用時間で、値上げや割引の効き具合が出ます。"});
+  }
+
+  // 6. 空いている枠
+  if(isAll){
+    const parts=[];
+    SITETABS.filter(k=>STUDIODATA[k]).forEach(k=>{const w=insWeak(STUDIODATA[k]);if(w)parts.push([k,w.minDay+"曜 "+w.minN+"件",""]);});
+    if(parts.length)out.push({tone:"info",head:"拠点ごとの一番空いている曜日",chips:parts,
+      body:"直近3か月で予約が一番少ない曜日です。拠点を切り替えると時間帯も見られます。"});
+  }else{
+    const w=insWeak(d);
+    if(w&&w.maxN>0){
+      const flat=(w.minN>=w.maxN*0.6);
+      out.push({tone:flat?"info":"warn",
+        head:flat?"曜日による偏りは小さい":("一番空いているのは"+w.minDay+"曜（直近"+w.used+"か月で"+w.minN+"件）"),
+        body:"最多は"+w.maxDay+"曜の"+w.maxN+"件、最少は"+w.minDay+"曜の"+w.minN+"件。時間帯では"+w.minSlot+"が最少（"+w.minSlotN+"件）。"});
+    }
+  }
+
+  // 7. 先の予約
+  const F=d.FUTURE;
+  if(F&&F.n){
+    const fp=(F.plat||[]).filter(p=>p[2]>0).slice().sort((a,b)=>b[2]-a[2]);
+    let body="今日以降の確定予約は"+F.n+"件・売上"+insY(F.revenue)+"・手取り"+insY(F.net)+(F.horizon?("（最終 "+F.horizon+"）"):"")+"。";
+    let tone="info", head="先の予約は"+F.n+"件・手取り"+insY(F.net);
+    if(!isAll&&F.n>=10&&fp.length&&F.revenue>0&&topName&&fp[0][0]!==topName){
+      const sh=Math.round(fp[0][2]/F.revenue*100);
+      if(sh>=40){tone="warn";head="先の予約は"+sh+"%が"+fp[0][0]+"経由";
+        body+="実績の主力は"+topName+"ですが、先の予約は"+fp[0][0]+"が"+insY(fp[0][2])+"（"+fp[0][1]+"件）を占めます。少数の利用者に寄っていないか確認する価値があります。";}
+    }
+    out.push({tone,head,body});
+  }
+  return out;
+}
+function renderInsights(){
+  const box=$("ins-list"); if(!box) return;
+  let items=[]; try{items=computeInsights(CUR);}catch(e){items=[];}
+  $("ins-card").style.display=items.length?"":"none";
+  $("ins-scope").textContent=CUR;
+  box.innerHTML="";
+  items.forEach(x=>{
+    const li=document.createElement("li"); li.className=x.tone;
+    const dot=document.createElement("i"); dot.className="ins-dot";
+    const w=document.createElement("div"), h=document.createElement("div"), b=document.createElement("div");
+    h.className="ins-h"; h.textContent=x.head; b.className="ins-b"; b.textContent=x.body;
+    w.appendChild(h); w.appendChild(b);
+    if(x.chips&&x.chips.length){const c=document.createElement("div");c.className="ins-chips";
+      x.chips.forEach(ch=>{const s=document.createElement("span");s.className="ins-chip";s.appendChild(document.createTextNode(ch[0]));
+        const v=document.createElement("b");v.textContent=ch[1];if(ch[2])v.className=ch[2];s.appendChild(v);c.appendChild(s);});
+      w.appendChild(c);}
+    li.appendChild(dot); li.appendChild(w); box.appendChild(li);
+  });
+}
+
+/* ---------- 新規／リピート（REPEAT がある拠点だけ表示） ---------- */
+const REPSHORT=new Proxy({"インスタベース":"IB","スペースマーケット":"SM","アップナウ":"upnow"},{get:(o,k)=>o[k]||k});
+function repTable(id,head,rows){
+  const t=$(id);t.innerHTML="";
+  const th=document.createElement("thead"),tr=document.createElement("tr");
+  head.forEach(h=>{const c=document.createElement("th");c.textContent=h;tr.appendChild(c);});th.appendChild(tr);t.appendChild(th);
+  const tb=document.createElement("tbody");
+  rows.forEach(r=>{const tr=document.createElement("tr");r.forEach(v=>{const c=document.createElement("td");
+    if(v&&typeof v==="object"){c.textContent=v.t;if(v.c)c.className=v.c;}else c.textContent=(v===null||v===undefined)?"—":v;
+    tr.appendChild(c);});tb.appendChild(tr);});
+  t.appendChild(tb);
+}
+function renderRepeat(){
+  const R=(STUDIODATA[CUR]||{}).REPEAT;
+  const show=!!R;
+  ["rep-h","rep-card"].forEach(id=>{$(id).style.display=show?"":"none";});
+  if(!show) return;
+  $("rep-scope").textContent=CUR;
+  const pct=(a,b)=>b?Math.round(100*a/b)+"%":"—";
+  repTable("rep-months",["月","件数","新規","リピート","リピート率","時間のリピート比","稼働率"],
+    R.months.map(m=>[mlabel(m[0])+(m[0]===beCurMonth()?"*":""),m[1],m[2],m[3],{t:pct(m[3],m[1]),c:"lo"},pct(m[5],m[4]+m[5]),m[6]+"%（"+m[7]+"%）"]));
+  const used=R.plats.filter((p,i)=>R.src.some(r=>r[2+i]>0));
+  const tot=R.src.reduce((a,r)=>a+r[1],0);
+  repTable("rep-src",["最初のPF","リピート件数"].concat(used.map(p=>"→"+REPSHORT[p])),
+    R.src.map(r=>[REPSHORT[r[0]],{t:r[1]+"（"+pct(r[1],tot)+"）",c:"lo"}].concat(used.map(p=>r[2+R.plats.indexOf(p)]||0))));
+  repTable("rep-ret",["最初のPF","新規客","再来","再来率","平均回数","直販へ移行"],
+    R.ret.map(r=>[REPSHORT[r[0]],r[1],r[2],{t:pct(r[2],r[1]),c:"lo"},r[3]+"回",r[4]===null?"—":r[4]+"人"]));
+  repTable("rep-price",["区分","PF","件数","平均時間","1件単価","時間単価","手取り/時間"],
+    R.price.map(r=>[r[0],r[1]==="全体"?"全体":REPSHORT[r[1]],r[2],r[3].toFixed(2)+"h",r[4]===null?null:yen(r[4]),r[5]===null?null:yen(r[5]),r[6]===null?null:{t:yen(r[6]),c:"lo"}]));
+  $("rep-win1").textContent="　"+R.win; $("rep-win3").textContent="　"+R.win; $("rep-win2").textContent="　初回"+R.retWin;
+  $("rep-note").textContent="単価は金額判明分のみ（—は金額未取得）。手取り/時間＝手数料控除後。顧客"+R.custN+"人のうち1回きり"+R.oneN+"人（"+pct(R.oneN,R.custN)+"）。データは"+R.since+"以降のみ。名前の表記ゆれは別人扱いのため、リピートと直販移行はやや低めに出る。*は月途中。";
+}
+
+function renderAll(){
+renderInsights();
+try{renderRepeat();}catch(e){console.error(e);}
+$("tag").textContent=META.rangeLabel;
+$("stamp").textContent=META.stamp;
+$("foot-range").textContent=META.rangeLabel;
+if($("be-note")){
+  const _b=META.be, _bm=_b&&_b.byMonth?_b.byMonth.filter(r=>r[1]>0):null;
+  const _stepped=beStepped();
+  $("be-note").textContent=(_b&&_b.monthly)
+    ? ("月次固定費 "+yen(_b.monthly)+"／月"+beSuffix(_b)
+       +(_stepped?("（"+_bm[0][0]+"は"+yen(_bm[0][1])+"。拠点の開業に合わせて段階的に増加）"):"")
+       +(_b.label?("・出典 "+_b.label):"")+"。")
+    : "この拠点は固定費が未設定のため分岐点ラインは非表示。";
+}
+
+
+/* ---------- 月次売上 推移 (全月・固定) ---------- */
+(function(){
+  const s=$("c-trend"),W=720,H=240,mL=64,mR=16,mT=18,mB=44;clr(s);
+  const iw=W-mL-mR, ih=H-mT-mB, n=TREND.length;
+  const BE=beVals(TREND,false);
+  const peak=Math.max(1,...TREND.map(d=>d[1]),...(BE||[]).map(v=>v*1.06));
+  const base=peak<=50000?10000:peak<=200000?50000:100000;
+  const max=niceMax(peak,base);
+  const bw=Math.min(90, iw/n*(n>7?0.72:0.5)), step=iw/n;
+  for(let g=0;g<=max;g+=base){const y=mT+ih-ih*g/max;
+    s.appendChild(el("line",{x1:mL,y1:y,x2:W-mR,y2:y,class:"gl"}));
+    txt(s,mL-8,y+4,"¥"+(g/10000)+"万","axis",null,null,null).setAttribute("text-anchor","end");}
+  s.appendChild(el("line",{x1:mL,y1:mT+ih,x2:W-mR,y2:mT+ih,class:"baseline"}));
+  const FEECOL="color-mix(in srgb, var(--rev) 30%, var(--surface-2))";
+  function topbar(x,y,w,h,r,fill){const p=el("path",{fill,class:"bar"});
+    p.setAttribute("d",`M${x},${y+r} Q${x},${y} ${x+r},${y} L${x+w-r},${y} Q${x+w},${y} ${x+w},${y+r} L${x+w},${mT+ih} L${x},${mT+ih} Z`);return p;}
+  TREND.forEach((d,i)=>{
+    const cx=mL+step*i+step/2, x=cx-bw/2, w=bw;
+    const hG=ih*d[1]/max, yG=mT+ih-hG;
+    const yN=mT+ih-ih*d[5]/max;
+    s.appendChild(topbar(x,yG,w,hG,6,FEECOL));
+    s.appendChild(el("rect",{x,y:yN,width:w,height:mT+ih-yN,fill:"var(--rev)",class:"bar"}));
+    txt(s,cx,lblTop(yG-8,beY(BE,i,mT,ih,max)),cyen(d[1],n),"val-lbl",null,"middle");
+    const ly=lblIn(yN+16,beY(BE,i,mT,ih,max));if(mT+ih-yN>16&&ly<mT+ih-3){const t=txt(s,cx,ly,cyen(d[5],n),"",null,"middle");t.setAttribute("fill","#fff");t.setAttribute("font-size","11");t.setAttribute("font-weight","650");}
+    txt(s,cx,H-22,mlabel(d[0]),"axis b",null,"middle");
+    txt(s,cx,H-7,d[2]+"件"+(d[4]&&n<=7?"（金額判明"+d[3]+"）":""),"axis",null,"middle").setAttribute("font-size","10.5");
+  });
+  drawBE(s,BE,mL,mT,ih,max,step,"損益分岐点",META.be);
+  beHeadline("trend-be",TREND,5,BE,"");
+})();
+
+/* ---------- 同日比較 (MTD・各月1〜cutoff日) ---------- */
+(function(){
+  if(typeof MTD==="undefined"||!MTD.length) return;
+  $("mtd-cut").textContent=(META.cutoff||"");
+  // 前月比（最新 vs 直前）
+  if(MTD.length>=2){
+    const a=MTD[MTD.length-1], b=MTD[MTD.length-2];
+    const pct=(x,y)=>y?Math.round((x/y-1)*100):0;
+    const sign=v=>(v>0?"+":"")+v+"%";
+    $("mtd-mom").textContent="前月同日比 売上"+sign(pct(a[1],b[1]))+"・手取り"+sign(pct(a[3],b[3]))+"・件数"+sign(pct(a[2],b[2]));
+  }
+  const s=$("c-mtd"),W=720,H=220,mL=64,mR=16,mT=18,mB=40;clr(s);
+  const iw=W-mL-mR, ih=H-mT-mB, n=MTD.length;
+  const BE=beVals(MTD,true);
+  const peak=Math.max(1,...MTD.map(d=>d[1]),...(BE||[]).map(v=>v*1.06));
+  const base=peak<=50000?10000:peak<=200000?50000:100000;
+  const max=niceMax(peak,base);
+  const bw=Math.min(90, iw/n*(n>7?0.72:0.5)), step=iw/n;
+  for(let g=0;g<=max;g+=base){const y=mT+ih-ih*g/max;
+    s.appendChild(el("line",{x1:mL,y1:y,x2:W-mR,y2:y,class:"gl"}));
+    txt(s,mL-8,y+4,"¥"+(g/10000)+"万","axis",null,null,null).setAttribute("text-anchor","end");}
+  s.appendChild(el("line",{x1:mL,y1:mT+ih,x2:W-mR,y2:mT+ih,class:"baseline"}));
+  const FEECOL="color-mix(in srgb, var(--rev) 30%, var(--surface-2))";
+  function topbar(x,y,w,h,r,fill){const p=el("path",{fill,class:"bar"});
+    p.setAttribute("d",`M${x},${y+r} Q${x},${y} ${x+r},${y} L${x+w-r},${y} Q${x+w},${y} ${x+w},${y+r} L${x+w},${mT+ih} L${x},${mT+ih} Z`);return p;}
+  MTD.forEach((d,i)=>{
+    const cx=mL+step*i+step/2, x=cx-bw/2, w=bw;
+    const hG=ih*d[1]/max, yG=mT+ih-hG, yN=mT+ih-ih*d[3]/max;
+    s.appendChild(topbar(x,yG,w,hG,6,FEECOL));
+    s.appendChild(el("rect",{x,y:yN,width:w,height:mT+ih-yN,fill:"var(--rev)",class:"bar"}));
+    txt(s,cx,lblTop(yG-8,beY(BE,i,mT,ih,max)),cyen(d[1],n),"val-lbl",null,"middle");
+    const ly=lblIn(yN+15,beY(BE,i,mT,ih,max));if(mT+ih-yN>16&&ly<mT+ih-3){const t=txt(s,cx,ly,cyen(d[3],n),"",null,"middle");t.setAttribute("fill","#fff");t.setAttribute("font-size","11");t.setAttribute("font-weight","650");}
+    txt(s,cx,H-23,mlabel(d[0]),"axis b",null,"middle");
+    txt(s,cx,H-8,d[2]+"件","axis",null,"middle").setAttribute("font-size","10.5");
+  });
+  drawBE(s,BE,mL,mT,ih,max,step,"損益分岐ペース",META.be);
+  beHeadline("mtd-be",MTD,3,BE,"（同日まで）");
+})();
+
+/* ---------- 先の予約（見込み・未来分） ---------- */
+(function(){
+  if(typeof FUTURE==="undefined") return;
+  const sumEl=$("fut-sum"), hzEl=$("fut-horizon"), s=$("c-future");clr(s);
+  if(!FUTURE.n){ if(sumEl)sumEl.textContent="現在なし"; return; }
+  if(sumEl)sumEl.textContent="計 "+FUTURE.n+"件 ・ 売上"+yen(FUTURE.revenue)+" ・ 手取り"+yen(FUTURE.net);
+  if(hzEl)hzEl.textContent=FUTURE.horizon?("　（最終予約 "+FUTURE.horizon+"）"):"";
+  const data=FUTURE.byMonth||[];
+  const W=720,H=220,mL=64,mR=16,mT=18,mB=40, iw=W-mL-mR, ih=H-mT-mB, n=Math.max(1,data.length);
+  const peak=Math.max(1,...data.map(d=>d[1]));
+  const base=peak<=50000?10000:peak<=200000?50000:100000;
+  const max=niceMax(peak,base), step=iw/n, bw=Math.min(84, step*(n>7?0.72:0.5));
+  for(let g=0;g<=max;g+=base){const y=mT+ih-ih*g/max;
+    s.appendChild(el("line",{x1:mL,y1:y,x2:W-mR,y2:y,class:"gl"}));
+    txt(s,mL-8,y+4,"¥"+(g/10000)+"万","axis",null,null,null).setAttribute("text-anchor","end");}
+  s.appendChild(el("line",{x1:mL,y1:mT+ih,x2:W-mR,y2:mT+ih,class:"baseline"}));
+  const FEECOL="color-mix(in srgb, var(--rev) 30%, var(--surface-2))";
+  function topbar(x,y,w,h,r,fill){const p=el("path",{fill,class:"bar"});
+    p.setAttribute("d",`M${x},${y+r} Q${x},${y} ${x+r},${y} L${x+w-r},${y} Q${x+w},${y} ${x+w},${y+r} L${x+w},${mT+ih} L${x},${mT+ih} Z`);return p;}
+  data.forEach((d,i)=>{
+    const cx=mL+step*i+step/2, x=cx-bw/2, w=bw;
+    const hG=ih*d[1]/max, yG=mT+ih-hG, yN=mT+ih-ih*d[3]/max;
+    s.appendChild(topbar(x,yG,w,hG,6,FEECOL));
+    s.appendChild(el("rect",{x,y:yN,width:w,height:mT+ih-yN,fill:"var(--rev)",class:"bar"}));
+    txt(s,cx,yG-8,cyen(d[1],n),"val-lbl",null,"middle");
+    txt(s,cx,H-23,mlabel(d[0]),"axis b",null,"middle");
+    txt(s,cx,H-8,d[2]+"件","axis",null,"middle").setAttribute("font-size","10.5");
+  });
+})();
+
+/* ---------- 汎用: 縦積み棒 (曜日×時間帯) ---------- */
+function renderStack(stack){
+  const s=$("c-dow");clr(s);
+  const W=720,H=300,mL=34,mR=14,mT=14,mB=42;
+  const iw=W-mL-mR, ih=H-mT-mB, DOW=["月","火","水","木","金","土","日"], n=7;
+  const totals=stack.map(d=>d[0]+d[1]+d[2]);
+  const peak=Math.max(1,...totals);
+  const stepv=peak<=8?2:peak<=20?4:peak<=40?10:20;
+  const max=Math.ceil(peak/stepv)*stepv;
+  const bw=Math.min(56, iw/n*0.62), step=iw/n;
+  for(let g=0;g<=max;g+=stepv){const y=mT+ih-ih*g/max;
+    s.appendChild(el("line",{x1:mL,y1:y,x2:W-mR,y2:y,class:"gl"}));
+    txt(s,mL-8,y+4,g,"axis",null,null,null).setAttribute("text-anchor","end");}
+  s.appendChild(el("line",{x1:mL,y1:mT+ih,x2:W-mR,y2:mT+ih,class:"baseline"}));
+  function rr(x,y,w,h,rt,rb,fill){const p=el("path",{fill,class:"bar"});
+    p.setAttribute("d",`M${x},${y+rt} Q${x},${y} ${x+rt},${y} L${x+w-rt},${y} Q${x+w},${y} ${x+w},${y+rt} L${x+w},${y+h-rb} Q${x+w},${y+h} ${x+w-rb},${y+h} L${x+rb},${y+h} Q${x},${y+h} ${x},${y+h-rb} Z`);return p;}
+  stack.forEach((d,i)=>{
+    const cx=mL+step*i+step/2, tot=totals[i];let acc=0;
+    d.forEach((v,j)=>{if(v>0){
+      const h=ih*v/max, y=mT+ih-ih*(acc+v)/max;
+      const isTop=(j===2)||(j===1&&d[2]===0)||(j===0&&d[1]===0&&d[2]===0);
+      const isBot=(j===0)||(j===1&&d[0]===0);
+      s.appendChild(rr(cx-bw/2,y,bw,h,isTop?6:0,isBot?6:0,COL[j]));
+      if(h>17){const t=txt(s,cx,y+h/2+4,v,"",null,"middle");t.setAttribute("fill","#fff");t.setAttribute("font-size","12");t.setAttribute("font-weight","650");}
+      acc+=v;}});
+    if(tot>0)txt(s,cx,mT+ih-ih*tot/max-8,tot,"val-lbl",null,"middle");
+    txt(s,cx,H-20,DOW[i],"axis b",null,"middle");
+  });
+}
+
+/* ---------- 汎用: 横棒 ---------- */
+function hbar(id,data,opt){
+  const s=$(id);clr(s);opt=opt||{};
+  const vb=s.getAttribute("viewBox").split(" ").map(Number),W=vb[2],H=vb[3];
+  const mL=opt.mL||118, mR=opt.mR||48, mT=6, mB=8, rh=(H-mT-mB)/Math.max(1,data.length);
+  const bh=Math.min(opt.bh||24, rh*0.62);
+  const valf=opt.valf||(d=>d[1]);
+  const max=Math.max(1,...data.map(valf))*1.02, iw=W-mL-mR;
+  data.forEach((d,i)=>{
+    const cy=mT+rh*i+rh/2, w=iw*valf(d)/max;
+    txt(s,mL-10,cy+4,d[0],"row-lbl",null,"end");
+    s.appendChild(el("rect",{x:mL,y:cy-bh/2,width:iw,height:bh,rx:5,fill:"var(--surface-2)"}));
+    let fill=opt.colorf?opt.colorf(d):(opt.color||"var(--seq)");
+    if(opt.seq){const t=data.length>1?i/(data.length-1):0;fill=`color-mix(in srgb, var(--seq) ${Math.round(100-t*46)}%, var(--surface-2))`;}
+    s.appendChild(el("rect",{x:mL,y:cy-bh/2,width:Math.max(w,2),height:bh,rx:5,fill,class:"bar"}));
+    const vt=opt.label?opt.label(d):valf(d);
+    if(mL+w+8 > W-mR){const t=txt(s,mL+Math.max(w-6,20),cy+4,vt,"val-lbl sm",null,"end");t.setAttribute("fill","#fff");}
+    else txt(s,mL+w+8,cy+4,vt,"val-lbl sm",null,"start");
+  });
+}
+
+/* ---------- プラットフォーム別 売上／手取り ---------- */
+function renderPlat(data){
+  const s=$("c-plat");clr(s);
+  const vb=s.getAttribute("viewBox").split(" ").map(Number),W=vb[2],H=vb[3];
+  const mL=124,valW=196,mT=8,mB=8,rh=(H-mT-mB)/Math.max(1,data.length),bh=Math.min(24,rh*0.4);
+  const iw=W-mL-valW, max=Math.max(1,...data.map(d=>d[2]))*1.02;
+  data.forEach((d,i)=>{
+    const cy=mT+rh*i+rh/2, wG=iw*d[2]/max, wN=iw*d[3]/max, col=PLATCOL[d[0]]||"var(--seq)";
+    txt(s,mL-10,cy+3,d[0],"row-lbl",null,"end");
+    s.appendChild(el("rect",{x:mL,y:cy-bh/2,width:iw,height:bh,rx:5,fill:"var(--surface-2)"}));
+    const g=el("rect",{x:mL,y:cy-bh/2,width:Math.max(wG,2),height:bh,rx:5,fill:col}); g.setAttribute("opacity","0.32"); s.appendChild(g);
+    s.appendChild(el("rect",{x:mL,y:cy-bh/2,width:Math.max(wN,2),height:bh,rx:5,fill:col,class:"bar"}));
+    txt(s,W-4,cy-2,yen(d[2]),"val-lbl sm",null,"end");
+    txt(s,W-4,cy+13,"手取り"+yen(d[3])+"（"+d[1]+"件）","axis",null,"end").setAttribute("font-size","10");
+  });
+}
+
+/* ---------- 時間帯別 平均利用時間 ---------- */
+function renderDur(dur){
+  const s=$("c-dur");clr(s);
+  const W=720,H=190,mL=132,mR=54,mT=10,mB=8,rh=(H-mT-mB)/Math.max(1,dur.length),bh=28;
+  const max=Math.max(1,...dur.map(d=>d[1]))*1.12,iw=W-mL-mR;
+  const gstep=max<=4?1:max<=8?2:4;
+  for(let g=0;g<=max;g+=gstep){const x=mL+iw*g/max;
+    s.appendChild(el("line",{x1:x,y1:mT,x2:x,y2:mT+rh*dur.length-14,class:"gl"}));
+    txt(s,x,H-2,g+"h","axis",null,"middle");}
+  dur.forEach((d,i)=>{
+    const cy=mT+rh*i+rh/2, w=iw*d[1]/max;
+    txt(s,mL-10,cy+4,d[0],"row-lbl",null,"end");
+    s.appendChild(el("rect",{x:mL,y:cy-bh/2,width:Math.max(w,2),height:bh,rx:5,fill:COL[i]||"var(--seq)",class:"bar"}));
+    txt(s,mL+w+8,cy+4,d[1]+"h","val-lbl sm",null,"start");
+    txt(s,mL+w+8,cy+18,"("+d[2]+"件)","axis",null,"start").setAttribute("font-size","10.5");
+  });
+}
+
+/* ---------- KPI ---------- */
+function renderKPIs(sc,label){
+  const rate=sc.revenue?Math.round((1-sc.net/sc.revenue)*100):0;
+  // 平均時間単価(¥/h)＝売上÷総利用時間。全チャネル。
+  const hours=(typeof sc.hoursKnown==="number"&&sc.hoursKnown>0)?sc.hoursKnown:(sc.dur||[]).reduce((s,d)=>s+((d[1]*d[2])||0),0);
+  const vg=0;
+  const hrRate=hours>0?Math.round((sc.revenue-vg)/hours):0;
+  const k=[
+    {lbl:"実予約 件数",val:sc.n,unit:"件",note:label+"・判明"+sc.knownN+"/"+sc.n},
+    {lbl:"売上（税込グロス）",val:yen(sc.revenue),unit:"",note:"ゲスト支払額"},
+    {lbl:"推定手取り",val:yen(sc.net),unit:"",note:"手数料控除後（実効"+rate+"%）"},
+    {lbl:"平均時間単価",val:"¥"+hrRate.toLocaleString("en-US"),unit:"/h",note:"全ch・売上÷利用時間（金額判明分）",accent:true},
+    {lbl:"最多 曜日 / 時間帯",val:sc.bd+" · "+sc.bs,unit:"",note:sc.bd+sc.bdn+"件・"+sc.bs+sc.bsn+"件"}
+  ];
+  $("kpis").innerHTML=k.map(x=>`<div class="kpi${x.accent?" accent":""}"><div class="lbl">${x.lbl}</div><div class="val">${x.val}${x.unit?` <small>${x.unit}</small>`:""}</div><div class="note">${x.note}</div></div>`).join("");
+}
+
+/* ---------- scope 切替 ---------- */
+function scopeLabel(key){return key==="全期間"?"全期間":(+key.split("-")[1])+"月";}
+function renderScope(key){
+  const sc=SCOPES[key], lb=scopeLabel(key);
+  ["sc-dow","sc-plat","sc-use","sc-ppl","sc-dur"].forEach(id=>$(id).textContent=lb);
+  renderKPIs(sc,lb);
+  renderStack(sc.stack);
+  renderPlat(sc.plat);
+  hbar("c-use",sc.uses,{seq:true,mL:150,bh:22});
+  hbar("c-ppl",sc.ppl,{seq:true,mL:104,bh:26});
+  renderDur(sc.dur);
+}
+
+/* selector buttons */
+(function(){
+  const keys=["全期間"].concat(MONTHS);
+  const box=$("sel");box.innerHTML="";
+  keys.forEach((key,i)=>{
+    const b=document.createElement("button");
+    b.textContent=scopeLabel(key)===key?key:(key==="全期間"?"全期間":scopeLabel(key));
+    b.setAttribute("aria-pressed", i===0?"true":"false");
+    b.addEventListener("click",()=>{
+      box.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed","false"));
+      b.setAttribute("aria-pressed","true");
+      renderScope(key);
+    });
+    box.appendChild(b);
+  });
+})();
+
+/* footer note + init */
+(function(){
+  const all=SCOPES["全期間"];
+  $("foot-note").textContent="集計対象 "+all.n+"件（"+(all.unknownN?("うち金額判明 "+all.knownN+"件／不明 "+all.unknownN+"件"):"全て金額判明")+"・キャンセル除外後）。";
+  renderScope("全期間");
+})();
+}
+/* ---------- 拠点別 月次の売上・利益・利益率（拠点切替に連動しない） ---------- */
+function renderPL(){
+  const tab=$("pl-tab"); if(!tab) return;
+  const keys=Object.keys(STUDIODATA); if(!keys.length){$("pl-card").style.display="none";return;}
+  const mk=l=>{const m=/^(\d{4})\/(\d{1,2})月$/.exec(l||"");return m?(+m[1])*100+(+m[2]):0;};
+  const set={}; keys.forEach(k=>STUDIODATA[k].TREND.forEach(r=>{set[r[0]]=1;}));
+  const months=Object.keys(set).sort((a,b)=>mk(a)-mk(b));
+  const cur=insCur(STUDIODATA[keys[0]]);
+  const man=v=>(v<0?"−":"")+(Math.round(Math.abs(v)/1000)/10).toFixed(1);
+  let h="<thead><tr><th class='st'>拠点</th><th class='mt'></th>"+months.map(m=>"<th"+(m===cur?" class='cur'":"")+">"+m.replace(/^(\d{4})\//,(a,y)=>y.slice(2)+"/")+(m===cur?"予測":"")+"</th>").join("")+"</tr></thead><tbody>";
+  keys.forEach((k,ki)=>{
+    const d=STUDIODATA[k], by=Object.fromEntries(d.TREND.map(r=>[r[0],r]));
+    const cells=months.map(m=>{
+      const r=by[m]; if(!r) return null;
+      let rev=r[1]||0, net=r[5]||0;
+      if(m===cur){                                       // 当月は月末までの予測に置き換える
+        const c=d.META.cutoff||31, dim=beDays(m), rem=Math.max(0,dim-c);
+        const fu=((d.FUTURE&&d.FUTURE.byMonth)||[]).find(x=>x[0]===m)||[m,0,0,0];
+        // 残り日数分＝「入っている先の予約」と「今月ここまでのペース×残り日数」の大きい方
+        rev=rev+Math.max(fu[1]||0,Math.round(rev/c*rem));
+        net=net+Math.max(fu[3]||0,Math.round(net/c*rem));
+      }
+      const be=insBE(d,m), pr=net-be;
+      if(!be) return {rev,pr:null,rate:null};           // 固定費が無い月（開業前の端数月）は利益を出さない
+      return {rev,pr,rate:rev?pr/rev:null};
+    });
+    const tot=ki===0&&keys.length>1?" tot":"";
+    const row=(lbl,f,last)=>"<tr class='"+(last?"g-last":"")+tot+"'>"+(lbl==="売上"?"<th class='st' rowspan='3'>"+k+"</th>":"")+"<td class='mt'>"+lbl+"</td>"+cells.map((c,i)=>{const x=f(c);return months[i]===cur?x.replace(/^<td(?: class='([^']*)')?/,(_,cl)=>"<td class='fc "+(cl||"")+"'"):x;}).join("")+"</tr>";
+    h+=row("売上",c=>c?"<td>"+man(c.rev)+"</td>":"<td class='na'>—</td>");
+    const pct=r=>(r<0?"−":"")+Math.abs(Math.round(r*100)).toLocaleString("en-US")+"%";
+    h+=row("利益",c=>(c&&c.pr!==null)?"<td class='"+(c.pr>=0?"pos":"neg")+"'>"+(c.pr>=0?"+":"")+man(c.pr)+"</td>":"<td class='na'>—</td>");
+    h+=row("利益率",c=>(c&&c.rate!==null)?"<td class='"+(c.rate>=0?"pos":"neg")+"'>"+pct(c.rate)+"</td>":"<td class='na'>—</td>",true);
+  });
+  tab.innerHTML=h+"</tbody>";
+  const w=tab.parentNode; if(w) w.scrollLeft=w.scrollWidth;   // 最新月（右端）が見える位置から始める
+  $("pl-cur").textContent=cur?"※"+cur.replace(/^\d{4}\//,"")+"は月末までの予測：1〜"+(STUDIODATA[keys[0]].META.cutoff||"")+"日の実績＋残り日数分（入っている先の予約と、今月ここまでのペース×残り日数の大きい方）。全社合計も同じ方法で単独に予測しているので、各拠点の予測の合計とは一致しません。":"";
+}
+try{renderPL();}catch(e){console.error(e);}
+(function(){var box=$("studiosel");var keys=Object.keys(STUDIODATA);if(keys.length<2){box.style.display="none";return;}keys.forEach(function(s,i){var b=document.createElement("button");b.textContent=s;b.setAttribute("aria-pressed",i===0?"true":"false");b.addEventListener("click",function(){box.querySelectorAll("button").forEach(function(x){x.setAttribute("aria-pressed","false")});b.setAttribute("aria-pressed","true");setStudio(s);renderAll();});box.appendChild(b);});})();
+renderAll();
+</script>
