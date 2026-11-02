@@ -44,7 +44,7 @@ build.py の `exit=2` なら NG。公開せずに STEP 3 からもう一度だ�
 
 # STEP 7: 公開（同じURLで上書き）
 Artifact ツールで `file_path: "/home/user/rsd/dashboard.html"`、`url: "{{ARTIFACT_URL}}"` を指定して publish する。icon は渡さない。URL は絶対に変えない。
-「ライブ版を読んでいない」と断られたら、指示どおり読んでから、自分の dashboard.html をそのまま publish し直す。
+「ライブ版を読んでいない」と断られたら、もう一度 `action: "read"` で同じ URL を読んでから、自分の dashboard.html をそのまま publish し直す（中身を合わせ直す必要はない。最大3回）。
 
 # STEP 8: 報告
 1〜3行で: 拠点ごとの予約件数・売上・手取り（build.py の ■ 行そのまま）、検査結果、公開の成否と URL。
