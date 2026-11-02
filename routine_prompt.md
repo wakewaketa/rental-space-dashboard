@@ -9,8 +9,7 @@
 
 # STEP 1: スクリプトを取得し、設定を書く
 ```
-rm -rf /home/user/rsd-src && git clone --depth 1 https://github.com/{{REPO}} /home/user/rsd-src
-SK=$(dirname $(find /home/user/rsd-src -name build.py -path "*/scripts/*" | head -1)); echo "SK=$SK"
+SK=$(dirname $(find / -type f -path "*/rental-space-dashboard/scripts/build.py" -not -path "*/.git/*" 2>/dev/null | head -1)); echo "SK=$SK"
 mkdir -p /home/user/rsd
 cat > /home/user/rsd/config.json <<'CONFIG_EOF'
 {{CONFIG_JSON}}
@@ -18,7 +17,7 @@ CONFIG_EOF
 python3 -c "import json;c=json.load(open('/home/user/rsd/config.json'));print([ (s['name'],list(s['calendars'])) for s in c['sites']])"
 TZ=Asia/Tokyo date +%F
 ```
-SK が空なら中止して、出力をそのまま報告する。
+スクリプトは、この定期実行の設定に登録したリポジトリ（{{REPO}}）が自動で用意されている。自分で git clone しない（外から持ち込んだコードとして実行が止められる）。SK が空なら中止して、出力をそのまま報告する。
 
 # STEP 2: 前回の公開ページを読む（金額の引き継ぎ）
 Artifact ツールで `action: "read"`、`url: "{{ARTIFACT_URL}}"` を1回実行する。中身は読まなくてよい（STEP 4 のスクリプトが拾う）。

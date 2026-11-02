@@ -99,6 +99,7 @@ upnow・Yoyappin の金額は自動では拾わない。必要なら各管理画
    - 名前: 「レンタルスペース 予約・売上ダッシュボード 日次更新」
    - 時刻: 毎日 朝7:00（日本時間）
    - 指示文: 手順2の routine_prompt.txt の全文
+   - **リポジトリ（ソース）: `https://github.com/wakewaketa/rental-space-dashboard` を登録する**（必須。指示文の中で git clone すると、外から持ち込んだコードとして実行が止められる）
    - コネクタ: Google Calendar と Gmail
    - 許可するツール: Bash・Read・Write・Artifact を含める（Artifact が無いと公開できない）
 4. **試しに1回動かす**: 作った定期実行をその場で実行し、終わったら実行ログで成功と公開を確認する。失敗していたらログの事実をユーザーに伝える。
